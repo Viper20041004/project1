@@ -11,5 +11,5 @@ def init_index():
     build_vector_store(all_chunks)
     print("Done!")
 
-if __name__ == "__main__":
-    init_index()
+# if __name__ == "__main__":
+#     init_index()

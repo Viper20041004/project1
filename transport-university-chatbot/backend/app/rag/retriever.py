@@ -1,4 +1,3 @@
-
 from .vector_store import load_vector_store
 
 def retrieve_context(question, top_k=3):
