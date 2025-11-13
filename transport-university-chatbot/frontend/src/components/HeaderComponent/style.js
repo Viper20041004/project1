@@ -29,8 +29,9 @@ export const Title = styled.span`
 
 export const Subtitle = styled.span`
   font-size: 11px;
-  color: #f9d871;
+  color: #f5b900;
   margin-top: 4px;
+  font-weight: 400;
   letter-spacing: 0.6px;
 `;
 
