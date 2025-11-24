@@ -1,7 +1,7 @@
 import os
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())  # finds and loads transport-university-chatbot/.env
