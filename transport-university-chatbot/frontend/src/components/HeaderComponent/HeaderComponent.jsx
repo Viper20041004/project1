@@ -96,6 +96,9 @@ export const HeaderComponent = () => {
     const handleNavigateLogin = () => {
         navigate('/sign-in');
     }
+    const handleNavigateRegister = () => {
+        navigate('/register');
+    }
     return (
         <>
             <WrapperHeader>
@@ -125,7 +128,14 @@ export const HeaderComponent = () => {
                     onClick={handleNavigateLogin}
                     size="middle"
                     styleButton={{ background: '#0d6efd', borderRadius: '6px', border: 'none', padding: '6px 14px' }}
-                    styleTextButton={{ color: '#fff', fontWeight: 600 }}
+                    styleTextButton={{ color: '#fff', fontWeight: 600 , width:'80px' }}
+                />
+                <ButtonComponents
+                    textButton="Đăng ký"
+                    onClick={handleNavigateRegister}
+                    size="middle"
+                    styleButton={{ background: '#0d6efd', borderRadius: '6px', border: 'none', padding: '6px 14px' }}
+                    styleTextButton={{ color: '#fff', fontWeight: 600 , width:'80px'  }}
                 />
                 </div>
             </Col>
