@@ -72,8 +72,9 @@ const SignInPage = () => {
           </span>
         </WrapperInputGroup>
 
-        <div style={{ width: '100%', textAlign: 'left', marginBottom: 10 }}>
+        <div style={{ width: '100%', textAlign: 'left', marginBottom: 10 , display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Checkbox onChange={handleOnChangeCheckbox}>Duy trì đăng nhập</Checkbox>
+          <p onClick={() => navigate('/register')} style={{fontSize:'15px' , marginTop:'15px' , fontWeight: 100 , cursor: 'pointer',color:'#0b74e5'}}>Tạo tài khoản? </p>
         </div>
 
         <ButtonComponent
