@@ -30,8 +30,8 @@ class UserCreate(UserBase):
 
 class UserLogin(BaseModel):
     """Schema for user login"""
-    username: str = Field(..., description="Username or email")
-    password: str = Field(..., description="Password")
+    username: str = Field(..., min_length=1, description="Username or email")
+    password: str = Field(..., min_length=1, description="Password")
 
 
 class UserUpdate(BaseModel):

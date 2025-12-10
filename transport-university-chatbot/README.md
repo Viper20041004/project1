@@ -1,53 +1,98 @@
 # Transport University Chatbot
 
-Hướng dẫn chạy ứng dụng Chatbot cho Trường Đại học Giao thông Vận tải.
+Hướng dẫn cài đặt và chạy ứng dụng Chatbot cho Trường Đại học Giao thông Vận tải.
 
-## 📋 Yêu cầu
+## 📋 Yêu cầu hệ thống
 
-- Python 3.8+
-- Node.js 16+
-- npm hoặc yarn
+- **Python**: 3.9+
+- **Node.js**: 16+ (Khuyến nghị 18 hoặc 20)
+- **PostgreSQL**: Đã được cài đặt và đang chạy.
 
-## 🚀 Cách chạy
+## 🚀 Hướng dẫn Cài đặt & Chạy
 
 ### 1. Cấu hình Backend
 
-#### Bước 1: Cài đặt dependencies
+#### Bước 1: Chuẩn bị môi trường Python
+
+Mở terminal, di chuyển vào thư mục `backend`:
 
 ```bash
-cd transport-university-chatbot/backend/app
+cd backend
+```
+
+Tạo và kích hoạt virtual environment (Khuyến nghị):
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### Bước 2: Cài đặt dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-#### Bước 2: Tạo file `.env`
+#### Bước 3: Cấu hình biến môi trường
 
-Tạo file `.env` trong thư mục `transport-university-chatbot/` (cùng cấp với thư mục `backend` và `frontend`) với nội dung:
+Tạo file `.env` tại thư mục gốc của dự án (`transport-university-chatbot/`) hoặc trong thư mục `backend/`. Nội dung file `.env` nên bao gồm:
 
 ```env
-PINECONE_API_KEY=your_pinecone_api_key_here
-PINECONE_INDEX=your_index_name_here
-GROQ_API_KEY=your_groq_api_key_here
+# Database Configuration
+DATABASE_URL=postgresql://postgres:password@localhost:5432/transport_chatbot
+
+# JWT Configuration (Thay đổi secret key để bảo mật)
+SECRET_KEY=your_super_secret_key_change_me
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# RAG Configuration (Nếu sử dụng tính năng Chatbot AI)
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_INDEX=your_index_name
+GROQ_API_KEY=your_groq_api_key
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-#### Bước 3: Chạy Backend
+> **Lưu ý**: Đảm bảo bạn đã tạo database PostgreSQL có tên `transport_chatbot` (hoặc tên tương ứng trong `DATABASE_URL`).
+
+#### Bước 4: Chạy Backend Server
+
+Tại thư mục `backend/`:
 
 ```bash
-cd transport-university-chatbot/backend/app
-python main.py
+uvicorn app.main:app --reload
+```
+*Hoặc:*
+```bash
+python app/main.py
 ```
 
-Backend sẽ chạy tại: `http://localhost:8000`
+Backend sẽ khởi chạy tại: `http://localhost:8000`
+API Docs: `http://localhost:8000/docs`
 
-Bạn có thể kiểm tra bằng cách mở: `http://localhost:8000/` hoặc `http://localhost:8000/health`
+---
 
 ### 2. Cấu hình Frontend
 
 #### Bước 1: Cài đặt dependencies
 
-Mở terminal mới và chạy:
+Mở một terminal mới, di chuyển vào thư mục `frontend`:
 
 ```bash
-cd transport-university-chatbot/frontend
+cd frontend
+```
+
+Cài đặt các gói thư viện:
+
+```bash
 npm install
 ```
 
@@ -57,42 +102,17 @@ npm install
 npm run dev
 ```
 
-Frontend sẽ chạy tại: `http://localhost:5173` (hoặc port khác nếu 5173 đã được sử dụng)
+Frontend sẽ chạy tại: `http://localhost:5173`
 
-## 📝 Lưu ý
+---
 
-1. **Chạy Backend trước**: Đảm bảo backend đã chạy trước khi mở frontend
-2. **CORS**: Backend đã được cấu hình CORS để cho phép frontend kết nối
-3. **API Endpoint**: Frontend sẽ tự động gọi API tại `/api/chat` thông qua Vite proxy
+## 🧪 Tài khoản Test (Nếu có)
 
-## 🧪 Test API
+Nếu bạn đã chạy seed data hoặc tạo tài khoản mẫu:
+- **Tài khoản test**: `testuser` / `password123` (Ví dụ)
 
-Bạn có thể test API bằng cách:
+## 🛠 Khắc phục sự cố thường gặp
 
-```bash
-curl -X POST "http://localhost:8000/api/chat" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Xin chào"}'
-```
-
-## 📁 Cấu trúc thư mục
-
-```
-transport-university-chatbot/
-├── backend/
-│   └── app/
-│       ├── main.py          # FastAPI server
-│       ├── requirements.txt
-│       └── rag/             # RAG system
-│           ├── __init__.py
-│           ├── retriever.py
-│           ├── generator.py
-│           └── vector_store.py
-├── frontend/
-│   └── src/
-│       └── components/
-│           └── ChatComponent/  # Chat UI component
-└── .env                      # Environment variables (tạo file này)
-```
-
-
+1.  **Lỗi "ModuleNotFoundError"**: Đảm bảo bạn đã kích hoạt `venv` và đang chạy lệnh từ đúng thư mục `backend`.
+2.  **Lỗi kết nối Database**: Kiểm tra `DATABASE_URL` trong `.env` đã đúng username/password và PostgreSQL đang chạy.
+3.  **Lỗi CORS**: Đảm bảo `ALLOWED_ORIGINS` trong `.env` khớp với port frontend chạy (mặc định 5173).
