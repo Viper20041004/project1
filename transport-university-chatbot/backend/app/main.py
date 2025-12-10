@@ -66,6 +66,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.middleware.auth_middleware import AuthMiddleware
+app.add_middleware(AuthMiddleware)
+
 # --- Pydantic models ---
 class ChatRequest(BaseModel):
     message: str
@@ -74,6 +77,12 @@ class ChatResponse(BaseModel):
     response: str
 
 # --- Endpoints ---
+# --- Routers ---
+from app.routes import auth, chat
+
+app.include_router(auth.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+
 @app.get("/api")
 def api_root():
     return {"message": "✅ API is running successfully."}
@@ -83,35 +92,6 @@ def get_users(db: Session = Depends(get_db)):
     """Lấy tất cả người dùng"""
     users = db.query(User).all()
     return [{"id": str(u.id), "username": u.username, "email": u.email} for u in users]
-
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, db: Session = Depends(get_db)):
-    start = time()
-    q = request.message.strip()
-    if not q:
-        raise HTTPException(status_code=400, detail="Message cannot be empty.")
-
-    try:
-        context = retrieve_context(q)
-        answer = generate_answer(q, context)
-
-        # Lưu chat vào DB, dùng user mặc định "student1"
-        user = db.query(User).filter(User.username == "student1").first()
-        if user:
-            chat_record = ChatHistory(
-                user_id=user.id,
-                message=q,
-                response=answer,
-                role="user"
-            )
-            db.add(chat_record)
-            db.commit()
-
-        logger.info(f"✅ Trả lời xong trong {time() - start:.2f}s")
-        return ChatResponse(response=answer)
-    except Exception as e:
-        logger.error(f"❌ Lỗi khi xử lý câu hỏi: {e}")
-        return ChatResponse(response=f"Lỗi: {e}")
 
 # --- Serve frontend ---
 if os.path.exists(FRONTEND_DIR):

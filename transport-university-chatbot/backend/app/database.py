@@ -8,12 +8,16 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+# Also try loading from parent directory (project root) if not found
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+load_dotenv(env_path)
 
 # Database URL from environment variable
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/transport_chatbot"
+    "postgresql://tu_user:tu_pass@127.0.0.1:5433/transport_chatbot"
 )
+print(f"DEBUG: Connecting to {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'UNKNOWN'}")
 
 # Create SQLAlchemy engine
 engine = create_engine(

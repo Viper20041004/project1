@@ -24,12 +24,7 @@ class UserCreate(UserBase):
         """Validate password strength"""
         if len(v) < 6:
             raise ValueError('Password must be at least 6 characters long')
-        if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
+        # Relaxed validation - only require minimum length for better UX
         return v
 
 
@@ -48,10 +43,18 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     """Schema for user response"""
-    id: UUID
+    id: str  # Changed from UUID to str for compatibility
     is_active: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_uuid_to_str(cls, v):
+        """Convert UUID to string if needed"""
+        if hasattr(v, '__str__'):
+            return str(v)
+        return v
     
     class Config:
         from_attributes = True

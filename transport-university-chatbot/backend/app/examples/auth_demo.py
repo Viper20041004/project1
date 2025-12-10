@@ -89,25 +89,25 @@ def example_user_operations():
                 email="demo@utc.edu.vn",
                 password="Demo@123"
             )
-            print(f"✓ Created user: {user.username} (ID: {user.id})")
+            print(f"[OK] Created user: {user.username} (ID: {user.id})")
         else:
             user = existing_user
-            print(f"✓ User already exists: {user.username}")
+            print(f"[OK] User already exists: {user.username}")
         
         # Authenticate user
         print("\nAuthenticating user...")
         auth_user = authenticate_user(db, "demo_user", "Demo@123")
         if auth_user:
-            print(f"✓ Authentication successful: {auth_user.username}")
+            print(f"[OK] Authentication successful: {auth_user.username}")
             
             # Create token for user
             token = create_access_token({
                 "sub": str(auth_user.id),
                 "username": auth_user.username
             })
-            print(f"✓ Generated token: {token[:30]}...")
+            print(f"[OK] Generated token: {token[:30]}...")
         else:
-            print("✗ Authentication failed")
+            print("[FAIL] Authentication failed")
         
     finally:
         db.close()
@@ -156,12 +156,12 @@ def example_chat_operations():
                 response=msg_data["response"],
                 role="user"
             )
-            print(f"✓ Saved: {msg_data['message'][:40]}...")
+            print(f"[OK] Saved: {msg_data['message'][:40]}...")
         
         # Get chat history
         print(f"\nRetrieving chat history for user: {user.username}")
         history = get_chat_history(db, user_id=user.id, limit=10)
-        print(f"✓ Found {len(history)} messages")
+        print(f"[OK] Found {len(history)} messages")
         
         for i, chat in enumerate(reversed(history[:3]), 1):
             print(f"\n  Message {i}:")
@@ -172,7 +172,7 @@ def example_chat_operations():
         print("\nGetting recent chat for LLM context...")
         recent = get_recent_chat_history(db, user_id=user.id, limit=5)
         context = format_chat_for_context(recent)
-        print(f"✓ Formatted context ({len(recent)} messages):")
+        print(f"[OK] Formatted context ({len(recent)} messages):")
         print(context[:200] + "...")
         
     finally:
@@ -226,13 +226,13 @@ async def my_chats(request: Request):
 
 def main():
     """Run all examples"""
-    print("\n" + "🚀 UTC Transport Chatbot - Database & Auth Examples".center(60))
+    print("\n" + "UTC Transport Chatbot - Database & Auth Examples".center(60))
     print("="*60)
     
     # Initialize database (if needed)
     try:
         init_db()
-        print("✓ Database initialized")
+        print("[OK] Database initialized")
     except Exception as e:
         print(f"Note: Database already initialized or error: {e}")
     
@@ -244,7 +244,7 @@ def main():
     example_middleware_usage()
     
     print("\n" + "="*60)
-    print("✅ All examples completed!")
+    print("[OK] All examples completed!")
     print("="*60)
     print("\nFor more information, see DATABASE_AUTH_README.md")
     print()

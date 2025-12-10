@@ -13,35 +13,65 @@ import {
   WrapperInputIcon,
   WrapperTitle,
 } from './style';
-import {  WrapperSocials, SocialIcon } from './style';
+import { WrapperSocials, SocialIcon } from './style';
 import InputForm from '../../components/InputForm/InputForm';
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
+import { authService } from '../../services/api';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOnChangeEmail = (value) => setEmail(value);
+  const handleOnChangeUsername = (value) => setUsername(value);
   const handleOnChangePassword = (value) => setPassword(value);
   const handleOnChangeConfirmPassword = (value) => setConfirmPassword(value);
-  const handleNavigateHome = () => {
-    navigate('/');
-  }
 
-  const handleRegister = () => {
-    let ok = true;
+  const handleRegister = async () => {
+    // Basic Validation
     setEmailError('');
+    setUsernameError('');
     setPasswordError('');
     setConfirmError('');
 
-    message.success('Đăng ký thành công');
-    navigate('/');
+    if (!email) { setEmailError("Vui lòng nhập email"); return; }
+    if (!username) { setUsernameError("Vui lòng nhập username"); return; }
+    if (!password) { setPasswordError("Vui lòng nhập mật khẩu"); return; }
+    if (password !== confirmPassword) { setConfirmError("Mật khẩu không khớp"); return; }
+
+    setIsLoading(true);
+    try {
+      await authService.register({
+        email: email,
+        username: username,
+        password: password
+      });
+      message.success("Đăng ký thành công! Vui lòng đăng nhập.");
+      navigate('/sign-in');
+    } catch (error) {
+      let errorMsg = "Đăng ký thất bại";
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          // Pydantic validation error array
+          errorMsg = detail.map(e => e.msg).join(', ');
+        } else {
+          errorMsg = detail;
+        }
+      }
+      message.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -55,7 +85,20 @@ const RegisterPage = () => {
             <UserOutlined />
           </WrapperInputIcon>
           <InputForm
-            placeholder="abc123@lms.utc.edu.vn"
+            placeholder="Username"
+            value={username}
+            handleOnChange={handleOnChangeUsername}
+            style={{ width: '100%', height: '40px', paddingLeft: '36px' }}
+          />
+          {usernameError && <div style={{ color: '#f5222d', fontSize: 12, textAlign: 'left', marginTop: 6 }}>{usernameError}</div>}
+        </WrapperInputGroup>
+
+        <WrapperInputGroup>
+          <WrapperInputIcon>
+            <UserOutlined />
+          </WrapperInputIcon>
+          <InputForm
+            placeholder="Email"
             value={email}
             handleOnChange={handleOnChangeEmail}
             style={{ width: '100%', height: '40px', paddingLeft: '36px' }}
@@ -114,11 +157,11 @@ const RegisterPage = () => {
           >
             {isShowPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
           </span>
-            {confirmError && <div style={{ color: '#f5222d', fontSize: 12, textAlign: 'left', marginTop: 6 }}>{confirmError}</div>}
+          {confirmError && <div style={{ color: '#f5222d', fontSize: 12, textAlign: 'left', marginTop: 6 }}>{confirmError}</div>}
         </WrapperInputGroup>
 
-        <div style={{ width: '100%', textAlign: 'left', marginBottom: 10 , display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p>Đã có tài khoản ?<span onClick={() => navigate('/sign-in')} style={{fontSize:'15px' , marginTop:'15px' , fontWeight: 400 , cursor: 'pointer', color:'#0b74e5'}}> Đăng nhập</span></p>
+        <div style={{ width: '100%', textAlign: 'left', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p>Đã có tài khoản ?<span onClick={() => navigate('/sign-in')} style={{ fontSize: '15px', marginTop: '15px', fontWeight: 400, cursor: 'pointer', color: '#0b74e5' }}> Đăng nhập</span></p>
         </div>
 
         <WrapperSocials>
@@ -151,8 +194,9 @@ const RegisterPage = () => {
             marginTop: '10px',
             boxShadow: '0 4px 10px rgba(11,116,229,0.3)',
           }}
-          textButton="Đăng ký"
+          textButton={isLoading ? "Đang xử lý..." : "Đăng ký"}
           styleTextButton={{ color: '#fff', fontSize: '16px', fontWeight: 600 }}
+          disabled={isLoading}
         />
       </WrapperForm>
     </WrapperContainer>

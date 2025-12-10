@@ -1,7 +1,7 @@
 """Authentication routes (register, login, me)."""
 
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -86,6 +86,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @router.post("/login/json", response_model=Token)
 def login_json(user_in: UserLogin, db: Session = Depends(get_db)):
     """Login with JSON body (alternative to form-data)."""
+    print(f"[DEBUG] login_json received: username={user_in.username}, password_len={len(user_in.password) if user_in.password else 0}")
     user = db.query(User).filter(
         (User.username == user_in.username) | (User.email == user_in.username)
     ).first()
@@ -112,15 +113,34 @@ def login_json(user_in: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserOut)
-def get_current_user_info(request, db: Session = Depends(get_db)):
+def get_current_user_info(request: Request, db: Session = Depends(get_db)):
     """Get current authenticated user info (requires valid JWT token in Authorization header)."""
-    # This route expects request.state.user to be set by AuthMiddleware
-    user = getattr(request.state, "user", None)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    return user
+    try:
+        # Get user_id from request.state (set by AuthMiddleware)
+        user_id = getattr(request.state, "user_id", None)
+        print(f"[DEBUG] /me endpoint: user_id from state: {user_id}")
+        
+        if not user_id:
+            print("[DEBUG] /me endpoint: No user_id found")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+        
+        # Query user from current DB session to avoid detached object issues
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        
+        if not user:
+            print(f"[DEBUG] /me endpoint: User not found for id {user_id}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or inactive"
+            )
+        
+        print(f"[DEBUG] /me endpoint: Returning user {user.username}")
+        return user
+    except Exception as e:
+        print(f"[ERROR] /me endpoint failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e

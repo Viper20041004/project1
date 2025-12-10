@@ -28,12 +28,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
     
     # Paths that don't require authentication
     PUBLIC_PATHS = [
-        "/",
         "/docs",
         "/openapi.json",
         "/redoc",
         "/health",
         "/api/auth/login",
+        "/api/auth/login/json",
         "/api/auth/register",
         "/api/auth/refresh",
     ]
@@ -45,17 +45,21 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         # Skip auth for public paths
         if self._is_public_path(request.url.path):
-            response = await call_next(request)
-            return response
+            return await call_next(request)
+            
+        print(f"DEBUG MIDDLEWARE: Intercepting {request.method} {request.url.path}", flush=True)
         
         # Extract Authorization header
         auth_header = request.headers.get("Authorization")
+        print(f"DEBUG MIDDLEWARE: Auth Header: {auth_header}", flush=True)
         
         if not auth_header:
+            print("DEBUG MIDDLEWARE: Missing Auth Header", flush=True)
             response = await call_next(request)
             return response
         
         if not auth_header.startswith("Bearer "):
+            print("DEBUG MIDDLEWARE: Header does not start with Bearer")
             response = await call_next(request)
             return response
         
@@ -63,10 +67,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         try:
             # Decode token
+            print(f"DEBUG MIDDLEWARE: Decoding token: {token[:10]}...")
             payload = decode_access_token(token)
             user_id_str = payload.get("sub")
+            print(f"DEBUG MIDDLEWARE: Payload sub: {user_id_str}")
             
             if not user_id_str:
+                print("DEBUG MIDDLEWARE: No sub in payload")
                 response = await call_next(request)
                 return response
             
@@ -74,6 +81,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             try:
                 user_id = UUID(user_id_str)
             except (ValueError, TypeError):
+                print("DEBUG MIDDLEWARE: Invalid UUID format")
                 response = await call_next(request)
                 return response
             
@@ -87,13 +95,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 
                 if user:
                     # Attach user to request state
+                    print(f"DEBUG MIDDLEWARE: User found: {user.username}")
                     request.state.user = user
                     request.state.user_id = user.id
+                else:
+                    print("DEBUG MIDDLEWARE: User not found in DB")
             finally:
                 db.close()
                 
-        except JWTError:
+        except JWTError as e:
             # Token decode failed - continue without user
+            print(f"DEBUG MIDDLEWARE: JWT Decode Error: {e}")
             pass
         except Exception as e:
             # Log unexpected errors in production
@@ -105,7 +117,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
     
     def _is_public_path(self, path: str) -> bool:
         """Check if the path is public and doesn't require authentication"""
-        return any(path.startswith(public_path) for public_path in self.PUBLIC_PATHS)
+        # Specific public paths
+        if path in ["/", "/health", "/favicon.ico"]:
+            return True
+            
+        # Documentation
+        if path.startswith(("/docs", "/redoc", "/openapi.json")):
+            return True
+            
+        # Auth endpoints
+        if path.startswith(("/api/auth/login", "/api/auth/register", "/api/auth/refresh")):
+            return True
+            
+        # Frontend assets (not starting with /api)
+        if not path.startswith("/api"):
+            return True
+            
+        return False
 
 
 def get_current_user(request: Request) -> Optional[User]:

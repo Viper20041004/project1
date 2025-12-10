@@ -1,49 +1,26 @@
 """Pydantic schemas for request/response validation."""
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
+
+# Import user schemas from user.py module
+from .user import UserCreate, UserLogin, UserResponse as UserOut, Token, TokenData as TokenPayload
 
 
-# ===== User Schemas =====
-class UserCreate(BaseModel):
-    """User registration schema."""
-    username: str = Field(..., min_length=3, max_length=150, description="Username (3-150 chars)")
-    email: EmailStr = Field(..., description="Valid email address")
-    password: str = Field(..., min_length=6, description="Password (min 6 chars)")
-
-
-class UserLogin(BaseModel):
-    """User login schema."""
-    username: str = Field(..., description="Username or email")
-    password: str = Field(..., description="Password")
-
-
-class UserOut(BaseModel):
-    """User response schema (no password)."""
-    id: str
-    username: str
-    email: EmailStr
-    is_active: bool
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
-
-    class Config:
-        orm_mode = True
-
-
-# ===== Token Schemas =====
-class Token(BaseModel):
-    """JWT token response schema."""
-    access_token: str
-    token_type: str = "bearer"
-
-
-class TokenPayload(BaseModel):
-    """JWT token payload schema (for validation)."""
-    sub: Optional[str] = None
-    exp: Optional[int] = None
-
+# Re-export for backward compatibility
+__all__ = [
+    'UserCreate',
+    'UserLogin', 
+    'UserOut',
+    'Token',
+    'TokenPayload',
+    'ChatMessageCreate',
+    'ChatMessageOut',
+    'ChatHistoryOut',
+    'ErrorResponse',
+]
 
 # ===== Chat Schemas =====
 class ChatMessageCreate(BaseModel):
@@ -55,15 +32,14 @@ class ChatMessageCreate(BaseModel):
 
 class ChatMessageOut(BaseModel):
     """Chat message response schema."""
-    id: str
-    user_id: str
+    id: UUID
+    user_id: UUID
     message: str
     response: Optional[str]
     role: str
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatHistoryOut(BaseModel):

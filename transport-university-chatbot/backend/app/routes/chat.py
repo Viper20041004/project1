@@ -1,6 +1,6 @@
 """Chat history routes (save and retrieve messages)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -10,9 +10,9 @@ from ..schemas import ChatMessageCreate, ChatMessageOut, ChatHistoryOut
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-@router.post("/save", response_model=ChatMessageOut, status_code=status.HTTP_201_CREATED)
-def save_message(chat_in: ChatMessageCreate, request, db: Session = Depends(get_db)):
-    """Save a chat message for the current user."""
+@router.post("/send", response_model=ChatMessageOut, status_code=status.HTTP_201_CREATED)
+def chat_with_bot(chat_in: ChatMessageCreate, request: Request, db: Session = Depends(get_db)):
+    """Chat with the bot: validates user, generates RAG response, and saves history."""
     # Get current user from request.state (set by AuthMiddleware)
     user = getattr(request.state, "user", None)
     
@@ -21,14 +21,34 @@ def save_message(chat_in: ChatMessageCreate, request, db: Session = Depends(get_
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated"
         )
+
+    # Import RAG modules here to avoid circular imports or context issues
+    try:
+        from rag.retriever import retrieve_context
+        from rag.generator import generate_answer
+    except ImportError:
+         raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="RAG module not found"
+        )
+
+    # Generate Response
+    try:
+        context = retrieve_context(chat_in.message)
+        answer = generate_answer(chat_in.message, context)
+    except Exception as e:
+         raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"RAG Error: {str(e)}"
+        )
     
     # Save chat entry
     entry = save_chat(
         db=db,
         user_id=user.id,
         message=chat_in.message,
-        response=chat_in.response,
-        role=chat_in.role
+        response=answer, # The AI response
+        role="user" # The initiator
     )
     
     return entry
@@ -38,7 +58,7 @@ def save_message(chat_in: ChatMessageCreate, request, db: Session = Depends(get_
 def get_history(
     limit: int = Query(50, ge=1, le=200, description="Max items per page"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
-    request=None,
+    request: Request = None,
     db: Session = Depends(get_db)
 ):
     """Get chat history for the current user with pagination."""
@@ -58,16 +78,19 @@ def get_history(
     # Get paginated items
     items = get_chat_history(db, user_id=user.id, limit=limit, offset=offset)
     
+    # Convert to Pydantic models
+    items_validated = [ChatMessageOut.model_validate(item) for item in items]
+    
     return ChatHistoryOut(
         total=total,
         limit=limit,
         offset=offset,
-        items=items
+        items=items_validated
     )
 
 
 @router.delete("/history/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_message(chat_id: str, request, db: Session = Depends(get_db)):
+def delete_message(chat_id: str, request: Request, db: Session = Depends(get_db)):
     """Delete a chat message (only if owned by current user)."""
     from ..models.chat_history import ChatHistory
     

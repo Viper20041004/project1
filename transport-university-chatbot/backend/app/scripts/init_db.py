@@ -17,7 +17,7 @@ from app.models.chat_history import ChatHistory
 
 def create_sample_users(db):
     """Create sample users for testing"""
-    print("\n📝 Creating sample users...")
+    print("\n Creating sample users...")
     
     # Admin user
     admin = db.query(User).filter(User.username == "admin").first()
@@ -31,10 +31,10 @@ def create_sample_users(db):
         db.add(admin_user)
         db.commit()
         db.refresh(admin_user)
-        print(f"✓ Created admin user: username='admin', email='admin@utc.edu.vn', password='Admin@123'")
+        print(f" Created admin user: username='admin', email='admin@utc.edu.vn', password='Admin@123'")
         print(f"  User ID: {admin_user.id}")
     else:
-        print("✓ Admin user already exists.")
+        print(" Admin user already exists.")
     
     # Sample regular users
     sample_users = [
@@ -69,11 +69,11 @@ def create_sample_users(db):
             db.commit()
             db.refresh(user)
             created_users.append(user)
-            print(f"✓ Created user: username='{user_data['username']}', email='{user_data['email']}'")
+            print(f" Created user: username='{user_data['username']}', email='{user_data['email']}'")
             print(f"  User ID: {user.id}")
         else:
             created_users.append(existing)
-            print(f"✓ User '{user_data['username']}' already exists.")
+            print(f" User '{user_data['username']}' already exists.")
     
     return created_users
 
@@ -83,7 +83,7 @@ def create_sample_chat_history(db, users):
     if not users:
         return
     
-    print("\n💬 Creating sample chat history...")
+    print("\n Creating sample chat history...")
     
     sample_chats = [
         {
@@ -113,7 +113,7 @@ def create_sample_chat_history(db, users):
             )
             db.add(chat)
         db.commit()
-        print(f"✓ Created {len(sample_chats)} chat messages for user '{user.username}'")
+        print(f" Created {len(sample_chats)} chat messages for user '{user.username}'")
 
 
 def init_database(reset: bool = False):
@@ -123,22 +123,22 @@ def init_database(reset: bool = False):
         reset: If True, drop all tables before creating (WARNING: deletes all data!)
     """
     print("=" * 60)
-    print("🚀 UTC Chatbot Database Initialization")
+    print(" UTC Chatbot Database Initialization")
     print("=" * 60)
     
     if reset:
-        print("\n⚠️  WARNING: Resetting database - all data will be deleted!")
+        print("\n WARNING: Resetting database - all data will be deleted!")
         confirm = input("Are you sure? Type 'yes' to confirm: ")
         if confirm.lower() != 'yes':
-            print("❌ Database reset cancelled.")
+            print(" Database reset cancelled.")
             return
-        print("\n🗑️  Dropping all tables...")
+        print("\n Dropping all tables...")
         drop_db()
-        print("✓ All tables dropped.")
+        print(" All tables dropped.")
     
-    print("\n📦 Creating database tables...")
+    print("\n Creating database tables...")
     init_db()
-    print("✓ Database schema created successfully!")
+    print(" Database schema created successfully!")
     
     # Create session and seed data
     db = SessionLocal()
@@ -150,21 +150,21 @@ def init_database(reset: bool = False):
         create_sample_chat_history(db, users)
         
         print("\n" + "=" * 60)
-        print("✅ Database initialized and seeded successfully!")
+        print(" Database initialized and seeded successfully!")
         print("=" * 60)
-        print("\n📋 Summary:")
+        print("\n Summary:")
         total_users = db.query(User).count()
         total_chats = db.query(ChatHistory).count()
         print(f"   Total Users: {total_users}")
         print(f"   Total Chat Messages: {total_chats}")
-        print("\n🔐 Default Login Credentials:")
+        print("\n Default Login Credentials:")
         print("   Admin: admin / Admin@123")
         print("   Student: student1 / Student@123")
         print("   Teacher: teacher1 / Teacher@123")
         print("\n")
         
     except Exception as e:
-        print(f"\n❌ Error during initialization: {e}")
+        print(f"\n Error during initialization: {e}")
         db.rollback()
         raise
     finally:
