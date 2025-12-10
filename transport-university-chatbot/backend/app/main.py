@@ -20,14 +20,9 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/app
 ROOT_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))  # transport-university-chatbot
 FRONTEND_DIR = os.path.join(ROOT_DIR, "frontend", "dist")
 
-# --- Add RAG directory ---
-RAG_DIR = os.path.join(CURRENT_DIR, "rag")
-if RAG_DIR not in sys.path:
-    sys.path.append(RAG_DIR)
-
 try:
-    from rag.retriever import retrieve_context
-    from rag.generator import generate_answer
+    from app.rag.retriever import retrieve_context
+    from app.rag.generator import generate_answer
     logger.info("✅ Import module RAG thành công.")
 except Exception as e:
     logger.warning(f"⚠️ Không thể import RAG module: {e}")

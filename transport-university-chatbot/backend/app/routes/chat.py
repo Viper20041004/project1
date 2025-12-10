@@ -24,12 +24,13 @@ def chat_with_bot(chat_in: ChatMessageCreate, request: Request, db: Session = De
 
     # Import RAG modules here to avoid circular imports or context issues
     try:
-        from rag.retriever import retrieve_context
-        from rag.generator import generate_answer
-    except ImportError:
+        from ..rag.retriever import retrieve_context
+        from ..rag.generator import generate_answer
+    except ImportError as e:
+         print(f"RAG IMPORT ERROR: {e}")
          raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="RAG module not found"
+            detail=f"RAG module not found: {str(e)}"
         )
 
     # Generate Response
