@@ -33,6 +33,10 @@ const SignInPage = () => {
   const handleOnChangeCheckbox = (e) => console.log(`checked = ${e.target.checked}`);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      message.error("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+      return;
+    }
     console.log('[DEBUG] ===== LOGIN START =====');
     console.log('[DEBUG] Username (email):', email);
     console.log('[DEBUG] Password provided:', password ? 'YES' : 'NO');
