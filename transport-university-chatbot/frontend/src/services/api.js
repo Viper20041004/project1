@@ -54,12 +54,11 @@ export const authService = {
         return api.post('/api/auth/login/json', { username, password });
     },
     register: (data) => api.post('/api/auth/register', data),
-    getMe: (token = null) => {
-        const authToken = token || localStorage.getItem('access_token');
-        console.log('[DEBUG] getMe called with token:', authToken ? 'PROVIDED' : 'FROM_STORAGE');
-        return api.get('/api/auth/me', {
-            headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-        });
+    getMe: async () => {
+        return await api.get('/api/auth/me');
+    },
+    getDashboardStats: async () => {
+        return await api.get('/api/dashboard');
     },
 };
 

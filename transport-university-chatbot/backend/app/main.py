@@ -73,10 +73,11 @@ class ChatResponse(BaseModel):
 
 # --- Endpoints ---
 # --- Routers ---
-from app.routes import auth, chat
+from app.routes import auth, chat, dashboard
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
 
 @app.get("/api")
 def api_root():
