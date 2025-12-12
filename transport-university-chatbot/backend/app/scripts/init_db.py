@@ -26,7 +26,8 @@ def create_sample_users(db):
             username="admin",
             email="admin@utc.edu.vn",
             password_hash=hash_password("Admin@123"),
-            is_active=True
+            is_active=True,
+            is_admin=True
         )
         db.add(admin_user)
         db.commit()

@@ -45,6 +45,7 @@ class UserResponse(UserBase):
     """Schema for user response"""
     id: str  # Changed from UUID to str for compatibility
     is_active: bool
+    is_admin: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     

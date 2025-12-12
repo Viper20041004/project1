@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Checkbox, message } from 'antd';
+import { Checkbox, message, Alert } from 'antd';
 import logo1 from '../../assets/images/logo/logo1.png';
 import backgroundImg from '../../assets/images/logo/utc.png';
 import { EyeOutlined, EyeInvisibleOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
@@ -58,11 +58,20 @@ const SignInPage = () => {
       console.log('[DEBUG] Step 5: Calling authService.getMe with token...');
       const userDetails = await authService.getMe(access_token);
       console.log('[DEBUG] Step 6: User details:', userDetails.data);
+      console.log('[DEBUG] Step 6b: User keys:', Object.keys(userDetails.data));
+      console.log('[DEBUG] Step 6c: is_admin value:', userDetails.data.is_admin);
+      console.log('[DEBUG] Step 6d: is_admin type:', typeof userDetails.data.is_admin);
 
       dispatch(loginSuccess({ ...userDetails.data, access_token }));
       message.success("Đăng nhập thành công!");
-      console.log('[DEBUG] Step 7: SUCCESS - Navigating to /');
-      navigate('/');
+
+      if (userDetails.data.is_admin) {
+        console.log('[DEBUG] Admin user detected (is_admin is truthy) - Navigating to /dashboard');
+        navigate('/dashboard');
+      } else {
+        console.log('[DEBUG] Regular user (is_admin is falsy) - Navigating to /');
+        navigate('/');
+      }
     } catch (error) {
       console.log('[DEBUG] ===== LOGIN ERROR =====');
       console.log('[DEBUG] Error object:', error);
@@ -90,6 +99,16 @@ const SignInPage = () => {
       <WrapperForm>
         <WrapperLogo src={logo1} alt="logo" preview={false} />
         <WrapperTitle>Đăng nhập hệ thống</WrapperTitle>
+
+        {user?.error && (
+          <Alert
+            message="Đăng nhập thất bại"
+            description={user.error}
+            type="error"
+            showIcon
+            style={{ marginBottom: '16px', borderRadius: '4px' }}
+          />
+        )}
 
         <WrapperInputGroup>
           <WrapperInputIcon>
