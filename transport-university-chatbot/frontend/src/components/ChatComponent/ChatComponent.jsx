@@ -62,9 +62,11 @@ const ChatComponent = () => {
           // Checking backend: ChatHistory model has (message, response). So each row is a Exchange.
         }));
 
-        // Flatten the pairs: User msg, then Bot msg
+        // Reverse items to show oldest to newest
+        const sortedItems = [...res.data.items].reverse();
+
         const flatMessages = [];
-        res.data.items.forEach(item => {
+        sortedItems.forEach(item => {
           flatMessages.push({ sender: 'user', text: item.message, id: item.id });
           if (item.response) {
             flatMessages.push({ sender: 'bot', text: item.response, id: item.id + '_bot' });

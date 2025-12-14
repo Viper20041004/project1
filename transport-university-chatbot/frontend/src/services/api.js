@@ -62,6 +62,16 @@ export const authService = {
     },
 };
 
+export const adminService = {
+    uploadPdf: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/api/admin/upload-pdf', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    }
+};
+
 export const chatService = {
     send: (message) => api.post('/api/chat/send', { message, role: "user" }),
     getHistory: (limit = 50, offset = 0) => api.get(`/api/chat/history?limit=${limit}&offset=${offset}`),

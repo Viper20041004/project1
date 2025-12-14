@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Statistic, List, Typography, Spin, message } from 'antd';
-import { UserOutlined, MessageOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { authService } from '../../services/api';
+import { Card, Row, Col, Statistic, List, Typography, Spin, message, Upload, Button } from 'antd';
+import { UserOutlined, MessageOutlined, QuestionCircleOutlined, UploadOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { authService, adminService } from '../../services/api';
 
 const { Title } = Typography;
 
@@ -12,6 +12,7 @@ const DashboardPage = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (!user.isAuthenticated || !user.user?.is_admin) {
@@ -35,6 +36,21 @@ const DashboardPage = () => {
 
         fetchStats();
     }, [user, navigate]);
+
+    const handleUpload = async ({ file, onSuccess, onError }) => {
+        setUploading(true);
+        try {
+            await adminService.uploadPdf(file);
+            message.success(`${file.name} đã được tải lên và xử lý thành công.`);
+            onSuccess("ok");
+        } catch (error) {
+            console.error(error);
+            message.error(`Tải lên thất bại: ${error.response?.data?.detail || error.message}`);
+            onError(error);
+        } finally {
+            setUploading(false);
+        }
+    };
 
     if (loading) {
         return <div style={{ textAlign: 'center', marginTop: '50px' }}><Spin size="large" /></div>;
@@ -66,6 +82,19 @@ const DashboardPage = () => {
                     </Card>
                 </Col>
             </Row>
+
+            <Card title={<><FilePdfOutlined /> Quản lý tài liệu (Knowledge Base)</>} style={{ marginBottom: '24px' }}>
+                <p>Tải lên tài liệu PDF mới để cập nhật kiến thức cho Chatbot. Quá trình xử lý (Embedding) sẽ diễn ra tự động.</p>
+                <Upload
+                    customRequest={handleUpload}
+                    showUploadList={false}
+                    accept=".pdf"
+                >
+                    <Button icon={<UploadOutlined />} loading={uploading} type="primary">
+                        {uploading ? 'Đang xử lý...' : 'Upload PDF'}
+                    </Button>
+                </Upload>
+            </Card>
 
             <Card title={<><QuestionCircleOutlined /> Câu hỏi thường gặp</>}>
                 <List
